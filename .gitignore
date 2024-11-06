@@ -1,0 +1,5 @@
+*.xcuserstate
+*.xccheckout
+*.xcworkspace
+xcuserdata/
+DerivedData/
