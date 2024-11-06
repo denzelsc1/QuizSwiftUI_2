@@ -13,9 +13,6 @@ struct QuizListView: View {
     var body: some View {
         NavigationStack {
             List(quizzesModel.quizzes) { quiz in
-                NavigationLink {
-                    QuizDetailView(quiz: quiz)
-                } label: {
                     HStack {
                         // Muestra la pregunta
                         Text(quiz.question)
@@ -49,4 +46,4 @@ struct QuizListView: View {
             }
         }
     }
-}
+

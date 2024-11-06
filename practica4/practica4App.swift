@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct practica4App: App {
+    @State var quizzesModel = QuizzesModel()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            QuizListView()
+                .environment(quizzesModel)
         }
     }
 }
