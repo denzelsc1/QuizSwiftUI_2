@@ -25,10 +25,11 @@ enum QuizzesModelError: LocalizedError {
     }
 }
 
-@Observable class QuizzesModel {
+@Observable class QuizzesModel: ObservableObject  {
     
     // Los datos
     private(set) var quizzes = [QuizItem]()
+    private(set) var contador: Set<String> = Set()
     
     func load() {
         do {
@@ -51,4 +52,7 @@ enum QuizzesModelError: LocalizedError {
             print(error.localizedDescription)
         }
     }
+    func addCorrectAnswer(quizId: String) {
+            contador.insert(quizId) // Insertamos el ID del quiz acertado en el Set
+        }
 }
