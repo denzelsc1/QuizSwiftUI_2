@@ -14,7 +14,7 @@ struct QuizjugarView: View {
     
     // Para controlar la navegación
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var quizzesModel: QuizzesModel
+    @Environment(QuizzesModel.self) var quizzesModel
     
     var body: some View {
         VStack(spacing: 20) {

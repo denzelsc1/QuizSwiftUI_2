@@ -25,7 +25,7 @@ enum QuizzesModelError: LocalizedError {
     }
 }
 
-@Observable class QuizzesModel: ObservableObject  {
+@Observable class QuizzesModel{
     
     // Los datos
     private(set) var quizzes = [QuizItem]()

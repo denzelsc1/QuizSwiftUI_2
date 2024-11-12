@@ -3,7 +3,7 @@ import SwiftUI
 struct QuizListView: View {
     
     // Usamos @EnvironmentObject para acceder al modelo global
-    @EnvironmentObject var quizzesModel: QuizzesModel
+     @Environment(QuizzesModel.self) var quizzesModel
 
     var body: some View {
         NavigationStack {

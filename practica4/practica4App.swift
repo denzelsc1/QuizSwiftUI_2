@@ -13,7 +13,7 @@ struct practica4App: App {
     var body: some Scene {
         WindowGroup {
             QuizListView()
-                .environmentObject(quizzesModel) 
+                .environment(quizzesModel)
         }
     }
 }
