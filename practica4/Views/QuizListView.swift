@@ -3,7 +3,8 @@ import SwiftUI
 struct QuizListView: View {
     
     @Environment(QuizzesModel.self) var quizzesModel
-
+    @State private var hasLoaded = false // Variable para verificar si se han cargado los quizzes
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -124,9 +125,21 @@ struct QuizListView: View {
             .padding()
             .background(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.white]), startPoint: .top, endPoint: .bottom))
             .onAppear {
-                quizzesModel.load()
+                if !hasLoaded {
+                    quizzesModel.load() // Cargar quizzes solo si no se han cargado previamente
+                    hasLoaded = true
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        quizzesModel.load() // Recargar quizzes al presionar el botón
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel("Recargar quizzes")
+                }
             }
         }
     }
 }
-

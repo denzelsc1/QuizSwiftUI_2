@@ -5,7 +5,7 @@ struct QuizjugarView: View {
     @State private var userAnswer: String = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
-
+    
     @Environment(\.presentationMode) var presentationMode
     @Environment(QuizzesModel.self) var quizzesModel
     
@@ -45,7 +45,7 @@ struct QuizjugarView: View {
                     }
                     .padding(.horizontal)
                 }
-
+                
                 if let author = quiz.author {
                     HStack {
                         if let authorImageURL = author.photo?.url {
@@ -99,17 +99,25 @@ struct QuizjugarView: View {
             }
         }
         .padding()
+        .alert(isPresented: $showAlert) {
+            Alert(
+                title: Text("Resultado"),
+                message: Text(alertMessage),
+                dismissButton: .default(Text("OK"))
+            )
+        }
         .background(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.white]), startPoint: .top, endPoint: .bottom))
     }
     
     private func checkAnswer() {
-        if userAnswer.lowercased() == quiz.answer.lowercased() {
-            alertMessage = "¡Correcto!"
-            quizzesModel.addCorrectAnswer(quizId: String(quiz.id))
-        } else {
-            alertMessage = "Incorrecto, inténtalo de nuevo."
+        quizzesModel.checkAnswer(quizId: quiz.id, answer: userAnswer) { isCorrect in
+            if isCorrect {
+                alertMessage = "¡Correcto!"
+                quizzesModel.addCorrectAnswer(quizId: String(quiz.id))
+            } else {
+                alertMessage = "Incorrecto, inténtalo de nuevo."
+            }
+            showAlert = true
         }
-        showAlert = true
     }
 }
-
