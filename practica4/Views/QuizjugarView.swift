@@ -5,6 +5,7 @@ struct QuizjugarView: View {
     @State private var userAnswer: String = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var isScaled = false  // Para la animación de escala
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(QuizzesModel.self) var quizzesModel
@@ -33,6 +34,12 @@ struct QuizjugarView: View {
                                 .scaledToFit()
                                 .frame(maxHeight: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 15))
+                                .onTapGesture(count: 2) {
+                                    // Llamada a la función para obtener la respuesta correcta
+                                    fetchAnswerAndAnimate()
+                                }
+                                .scaleEffect(isScaled ? 1.1 : 1.0) // Animación de escala
+                                .animation(.easeInOut(duration: 0.3), value: isScaled)
                         case .failure:
                             Image(systemName: "photo")
                                 .resizable()
@@ -76,6 +83,34 @@ struct QuizjugarView: View {
                     .background(RoundedRectangle(cornerRadius: 10).fill(Color.blue.opacity(0.05)))
                     .padding(.horizontal)
                 
+                Button("Borrar respuesta") {
+                    userAnswer = ""
+                }
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.red, lineWidth: 2))
+                .foregroundColor(.red)
+                .padding(.horizontal)
+                
+                // Botón para mostrar la respuesta correcta
+                Button("Mostrar respuesta correcta") {
+                    quizzesModel.FetchAnswer(forQuizId: quiz.id) { correctAnswer in
+                        if let correctAnswer = correctAnswer {
+                            userAnswer = correctAnswer // Asignar la respuesta correcta al TextField
+                        } else {
+                            alertMessage = "No se encontró la respuesta correcta."
+                            showAlert = true
+                        }
+                    }
+                }
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.green))
+                .foregroundColor(.white)
+                .padding(.horizontal)
+
                 Button("Comprobar respuesta") {
                     checkAnswer()
                 }
@@ -109,6 +144,23 @@ struct QuizjugarView: View {
         .background(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.white]), startPoint: .top, endPoint: .bottom))
     }
     
+    private func fetchAnswerAndAnimate() {
+        quizzesModel.FetchAnswer(forQuizId: quiz.id) { correctAnswer in
+            if let correctAnswer = correctAnswer {
+                // Asignar la respuesta correcta al TextField
+                userAnswer = correctAnswer
+                
+                // Animar el TextField con un pequeño cambio de escala
+                withAnimation {
+                    isScaled.toggle() // Cambiar la escala para la animación
+                }
+            } else {
+                alertMessage = "No se encontró la respuesta correcta."
+                showAlert = true
+            }
+        }
+    }
+    
     private func checkAnswer() {
         quizzesModel.checkAnswer(quizId: quiz.id, answer: userAnswer) { isCorrect in
             if isCorrect {
@@ -121,3 +173,4 @@ struct QuizjugarView: View {
         }
     }
 }
+

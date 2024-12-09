@@ -72,7 +72,14 @@ enum QuizzesModelError: LocalizedError {
     }
 
     func checkAnswer(quizId: Int, answer: String, completion: @escaping (Bool) -> Void) {
-        guard let apiURL = URL(string: "https://quiz.dit.upm.es/api/quizzes/\(quizId)/check?answer=\(answer)&token=cd2554928eddddeb5a0b") else {
+        // Escapar adecuadamente el valor de 'answer'
+        guard let escapedAnswer = answer.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            print("No se pudo escapar el valor de la respuesta")
+            completion(false)
+            return
+        }
+
+        guard let apiURL = URL(string: "https://quiz.dit.upm.es/api/quizzes/\(quizId)/check?answer=\(escapedAnswer)&token=cd2554928eddddeb5a0b") else {
             print("URL inválida")
             completion(false)
             return
@@ -117,7 +124,103 @@ enum QuizzesModelError: LocalizedError {
         task.resume()
     }
 
+
     func addCorrectAnswer(quizId: String) {
         contador.insert(quizId)
     }
+    
+    func toggleFavourite(quizId: Int, isFavourite: Bool, completion: @escaping (Bool) -> Void) {
+        // Definir la URL para la petición
+        let method = isFavourite ? "DELETE" : "PUT"
+        let urlString = "https://quiz.dit.upm.es/api/users/tokenOwner/favourites/\(quizId)?token=cd2554928eddddeb5a0b"
+        
+        guard let url = URL(string: urlString) else {
+            print("URL inválida")
+            completion(false)
+            return
+        }
+            
+        // Configurar la solicitud
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let error = error {
+                print("Error en la solicitud: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                print("Respuesta HTTP no válida")
+                completion(false)
+                return
+            }
+
+            guard let data = data else {
+                print("No se recibieron datos")
+                completion(false)
+                return
+            }
+
+            do {
+                let result = try JSONDecoder().decode(FavouriteResponse.self, from: data)
+                DispatchQueue.main.async {
+                    // Actualizar el estado local del quiz
+                    if let index = self?.quizzes.firstIndex(where: { $0.id == quizId }) {
+                        self?.quizzes[index].favourite = result.favourite
+                    }
+                    completion(true)
+                }
+            } catch {
+                print("Error al decodificar los datos: \(error.localizedDescription)")
+                completion(false)
+            }
+        }
+
+        task.resume()
+    }
+  
+    func FetchAnswer(forQuizId quizId: Int, completion: @escaping (String?) -> Void) {
+        let urlString = "https://quiz.dit.upm.es/api/quizzes/\(quizId)/answer?token=cd2554928eddddeb5a0b"
+        guard let url = URL(string: urlString) else {
+            print("URL inválida")
+            completion(nil) // Enviar nil si hay un error
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error en la solicitud: \(error.localizedDescription)")
+                completion(nil) // Enviar nil si hay un error
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                print("Respuesta HTTP no válida")
+                completion(nil) // Enviar nil si hay un error
+                return
+            }
+
+            guard let data = data else {
+                print("No se recibieron datos")
+                completion(nil) // Enviar nil si hay un error
+                return
+            }
+
+            do {
+                let result = try JSONDecoder().decode(SeeAnswer.self, from: data)
+                DispatchQueue.main.async {
+                    completion(result.answer) // Enviar el valor de `answer`
+                }
+            } catch {
+                print("Error al decodificar los datos: \(error.localizedDescription)")
+                completion(nil) // Enviar nil si hay un error
+            }
+        }
+
+        task.resume()
+    }
+
+
 }

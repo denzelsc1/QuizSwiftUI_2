@@ -4,6 +4,7 @@ struct QuizListView: View {
     
     @Environment(QuizzesModel.self) var quizzesModel
     @State private var hasLoaded = false // Variable para verificar si se han cargado los quizzes
+    @State private var showUnansweredOnly = false // Variable para controlar el Toggle
     
     var body: some View {
         NavigationStack {
@@ -37,9 +38,22 @@ struct QuizListView: View {
                 .shadow(radius: 4)
                 .padding([.top, .horizontal])
 
+                // Toggle para mostrar solo los quizzes no acertados
+                HStack {
+                    Text("Mostrar solo quizzes no acertados")
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                    Spacer()
+                    Toggle("", isOn: $showUnansweredOnly)
+                        .labelsHidden()
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
                 // Lista de quizzes
                 List {
-                    ForEach(quizzesModel.quizzes) { quiz in
+                    ForEach(filteredQuizzes()) { quiz in
                         NavigationLink(destination: QuizjugarView(quiz: quiz)) {
                             HStack(alignment: .center, spacing: 15) {
                                 // Imagen adjunta del quiz en forma circular
@@ -110,6 +124,14 @@ struct QuizListView: View {
                                 Image(systemName: quiz.favourite ? "star.fill" : "star")
                                     .font(.title2)
                                     .foregroundColor(.blue)
+                                    .onTapGesture {
+                                        quizzesModel.toggleFavourite(quizId: quiz.id, isFavourite: quiz.favourite) { success in
+                                            if !success {
+                                                print("No se pudo actualizar el estado favorito del quiz con id \(quiz.id)")
+                                            }
+                                        }
+                                    }
+                                    .animation(.easeInOut, value: quiz.favourite)
                             }
                             .padding()
                             .background(RoundedRectangle(cornerRadius: 15).fill(Color.blue.opacity(0.05)))
@@ -142,4 +164,18 @@ struct QuizListView: View {
             }
         }
     }
+    
+    // Función que filtra los quizzes según el estado del Toggle
+    private func filteredQuizzes() -> [QuizItem] {
+        if showUnansweredOnly {
+            return quizzesModel.quizzes.filter { quiz in
+                // Filtra los quizzes que no han sido acertados (result es false o nil)
+                guard let result = quiz.answer?.result else { return true } // Si no hay respuesta, lo tratamos como no acertado
+                return !result // Devuelve los quizzes donde result es false
+            }
+        } else {
+            return quizzesModel.quizzes
+        }
+    }
 }
+
