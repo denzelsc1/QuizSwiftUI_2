@@ -6,6 +6,7 @@ struct QuizjugarView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var isScaled = false  // Para la animación de escala
+    var onQuizAnswered: (Bool) -> Void
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(QuizzesModel.self) var quizzesModel
@@ -166,6 +167,7 @@ struct QuizjugarView: View {
             if isCorrect {
                 alertMessage = "¡Correcto!"
                 quizzesModel.addCorrectAnswer(quizId: String(quiz.id))
+                onQuizAnswered(true)
             } else {
                 alertMessage = "Incorrecto, inténtalo de nuevo."
             }

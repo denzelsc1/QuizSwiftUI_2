@@ -5,7 +5,9 @@ struct QuizListView: View {
     @Environment(QuizzesModel.self) var quizzesModel
     @State private var hasLoaded = false // Variable para verificar si se han cargado los quizzes
     @State private var showUnansweredOnly = false // Variable para controlar el Toggle
-    
+    @State private var answeredQuizIds: Set<Int> = [] // Almacena los IDs de los quizzes acertados
+    @State private var totalCorrectAnswers: Int = UserDefaults.standard.integer(forKey: "totalCorrectAnswers") // Recuperar desde UserDefaults
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -18,11 +20,11 @@ struct QuizListView: View {
                 // Contador de quizzes acertados
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("Quizzes acertados")
+                        Text("Quizzes acertados en esta sesión")
                             .font(.headline)
                             .foregroundColor(.white)
                             .bold()
-                        Text("\(quizzesModel.contador.count)")
+                        Text("\(answeredQuizIds.count)")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -34,6 +36,29 @@ struct QuizListView: View {
                 }
                 .padding()
                 .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.7)]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                .cornerRadius(15)
+                .shadow(radius: 4)
+                .padding([.top, .horizontal])
+
+                // Contador global de quizzes acertados
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Total de quizzes acertados")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .bold()
+                        Text("\(totalCorrectAnswers)")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    Spacer()
+                    Image(systemName: "star.circle.fill")
+                        .font(.system(size: 40)) // Tamaño dinámico
+                        .foregroundColor(.white)
+                }
+                .padding()
+                .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.green.opacity(0.7)]), startPoint: .topLeading, endPoint: .bottomTrailing))
                 .cornerRadius(15)
                 .shadow(radius: 4)
                 .padding([.top, .horizontal])
@@ -54,7 +79,11 @@ struct QuizListView: View {
                 // Lista de quizzes
                 List {
                     ForEach(filteredQuizzes()) { quiz in
-                        NavigationLink(destination: QuizjugarView(quiz: quiz)) {
+                        NavigationLink(destination: QuizjugarView(quiz: quiz, onQuizAnswered: { isCorrect in
+                            if isCorrect {
+                                handleCorrectAnswer(for: quiz.id)
+                            }
+                        })) {
                             HStack(alignment: .center, spacing: 15) {
                                 // Imagen adjunta del quiz en forma circular
                                 if let url = quiz.attachment?.url {
@@ -165,13 +194,19 @@ struct QuizListView: View {
         }
     }
     
+    private func handleCorrectAnswer(for quizId: Int) {
+        if !answeredQuizIds.contains(quizId) {
+            answeredQuizIds.insert(quizId)
+            totalCorrectAnswers += 1
+            UserDefaults.standard.set(totalCorrectAnswers, forKey: "totalCorrectAnswers")
+        }
+    }
+    
     // Función que filtra los quizzes según el estado del Toggle
     private func filteredQuizzes() -> [QuizItem] {
         if showUnansweredOnly {
             return quizzesModel.quizzes.filter { quiz in
-                // Filtra los quizzes que no han sido acertados (result es false o nil)
-                guard let result = quiz.answer?.result else { return true } // Si no hay respuesta, lo tratamos como no acertado
-                return !result // Devuelve los quizzes donde result es false
+                !answeredQuizIds.contains(quiz.id)
             }
         } else {
             return quizzesModel.quizzes
