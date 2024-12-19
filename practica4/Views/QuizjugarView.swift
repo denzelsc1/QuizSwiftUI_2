@@ -82,6 +82,15 @@ struct QuizjugarView: View {
                                 }
                                 .padding(.top, 10)
                             }
+                            Image(systemName: quiz.favourite ? "star.fill" : "star")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .padding()
+                                .scaleEffect(isScaled ? 1.1 : 1.0)
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                                .animation(.easeInOut(duration: 0.3), value: isScaled)
+
                         }
                         .frame(width: geometry.size.width * 0.45) // Aseguramos que ocupe menos espacio
 
@@ -187,32 +196,42 @@ struct QuizjugarView: View {
                         }
                         .padding(.horizontal)
                     }
-                    
-                    // Imagen del autor y nombre del autor
-                    if let author = quiz.author {
-                        HStack {
-                            if let authorImageURL = author.photo?.url {
-                                AsyncImage(url: authorImageURL) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        ProgressView().frame(width: 40, height: 40).clipShape(Circle())
-                                    case .success(let image):
-                                        image.resizable().scaledToFit().frame(width: 40, height: 40).clipShape(Circle())
-                                    case .failure:
-                                        Image(systemName: "person.crop.circle.fill").resizable().frame(width: 40, height: 40)
-                                    @unknown default:
-                                        EmptyView()
+                    HStack{
+                        // Imagen del autor y nombre del autor
+                        if let author = quiz.author {
+                            HStack {
+                                if let authorImageURL = author.photo?.url {
+                                    AsyncImage(url: authorImageURL) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView().frame(width: 40, height: 40).clipShape(Circle())
+                                        case .success(let image):
+                                            image.resizable().scaledToFit().frame(width: 40, height: 40).clipShape(Circle())
+                                        case .failure:
+                                            Image(systemName: "person.crop.circle.fill").resizable().frame(width: 40, height: 40)
+                                        @unknown default:
+                                            EmptyView()
+                                        }
                                     }
                                 }
+                                Text(author.profileName ?? "Autor desconocido")
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                                Spacer()
                             }
-                            Text(author.profileName ?? "Autor desconocido")
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
-                            Spacer()
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
+                        HStack{
+                            Image(systemName: quiz.favourite ? "star.fill" : "star")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .padding()
+                                .scaleEffect(isScaled ? 1.1 : 1.0)
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                                .animation(.easeInOut(duration: 0.3), value: isScaled)
+                        }
                     }
-                    
                     // Respuesta del usuario
                     TextField("Escribe tu respuesta", text: $userAnswer)
                         .textFieldStyle(RoundedBorderTextFieldStyle())

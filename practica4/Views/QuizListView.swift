@@ -12,12 +12,6 @@ struct QuizListView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
-                // Título grande en la parte superior
-                Text("Quizzes")
-                    .font(.system(size: 34, weight: .bold)) // Escalable
-                    .padding(.leading)
-                    .foregroundColor(.blue)
-
                 // Apartado de "Quizzes acertados" con imagen de tick dentro de un bloque verde
                 
                 if verticalSizeClass == .compact { // En modo horizontal, dividir en 2 columnas
@@ -353,6 +347,7 @@ struct QuizListView: View {
                     hasLoaded = true
                 }
             }
+            .navigationTitle("Quizzes")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
